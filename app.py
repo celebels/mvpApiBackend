@@ -10,7 +10,7 @@ from modulo_2_int.resources.account_stocks import blp as AccountStocksBlueprint
 from modulo_3_ext.resources.fetching_data import bp as FetchingBlueprint #fetching
 
 from modulo_2_int.db import db
-from flask_jwt_extended import JWTManager
+#from flask_jwt_extended import JWTManager
 
 
 import modulo_2_int.models
@@ -19,6 +19,14 @@ import modulo_2_int.models
 
 
 def create_app(db_url = None):
+    
+    ROOT = os.path.dirname(__file__)
+    db_file = os.path.join(ROOT, "data", "app.db")
+    os.makedirs(os.path.dirname(db_file),exist_ok=True)
+
+    
+    
+    
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}})
     
@@ -29,7 +37,7 @@ def create_app(db_url = None):
     app.config["OPENAPI_URL_PREFIX"] = "/"
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL","sqlite:///data.db") #stores in server instead of code
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL",f"sqlite:///{db_file}") #stores in server instead of code
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
 

@@ -33,17 +33,25 @@ class TransactionConvertionDetail(MethodView): #since i just want to fetch and s
     def get(self, user_id,stock_id):
         stocks = StockModel.query.filter_by(stock_id = stock_id).first_or_404() 
         transactions = TransactionModel.query.filter_by(user_id=user_id, stock_id=stock_id).first_or_404()
-        ticker = yf.Ticker(stocks.stock_symbol)
-        if ticker.info["currency"] == "USD":
-            rate = yf.Ticker("USDBRL=X").info["regularMarketPrice"]
-            fetched_data = {
-                "user_id": user_id,
-                "stock_id": stock_id,
-                "stock_symbol" : stocks.stock_symbol,
-                "stock_price" : transactions.price_transacion,
-                "converted_value" : transactions.price_transacion * rate
-            }
+        
+        
+        try:
+            ticker = yf.Ticker(stocks.stock_symbol)
+            if ticker.info["currency"] != "USD":
+                abort(400, message=f"Stock currency not supported or missing for {stocks.stock_symbol}.")
+            if ticker.info["currency"] == "USD":
+                rate = yf.Ticker("USDBRL=X").info["regularMarketPrice"] ##convertendo para real
+                price = yf.Ticker(stocks.stock_symbol).info.get("regularMarketPrice")
+                fetched_data = {
+                    "user_id": user_id,
+                    "stock_id": stock_id,
+                    "stock_symbol" : stocks.stock_symbol,
+                    "stock_price" : price,
+                    "converted_value" : transactions.price_transacion * rate
+                }
             return fetched_data
+        except Exception as e:
+            abort(500,message=f"error fetching financial data:{str(e)}")
        
         
 @bp.route("/stocks/<int:stock_id>/price") #fetching price in real time, no need to store it

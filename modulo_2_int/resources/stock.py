@@ -4,6 +4,8 @@ from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
 from flask_smorest import Blueprint, abort
 
+import traceback 
+
 
 from modulo_2_int.db import db
 from modulo_2_int.models import StockModel
@@ -43,6 +45,7 @@ class StockList(MethodView):
             db.session.add(stock)
             db.session.commit() # save in db
         except SQLAlchemyError:
+            traceback.print_exc()
             abort(500, message="error whilst inserting new stock")
             
         return stock
